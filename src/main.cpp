@@ -98,13 +98,34 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
+          // transform from map coordinates to vehicle coordinates
+          vector<double> ptsx_car;
+          vector<double> ptsy_car;
+          for (int i = 0; i < ptsx.size(); i++) {
+            double dx = ptsx[i] - px;
+            double dy = ptsy[i] - py;
+            ptsx_car.push_back(cos(-psi) * dx - sin(-psi) * dy);
+            ptsy_car.push_back(sin(-psi) * dx + cos(-psi) * dy);
+          }
+
+          Eigen::Map<Eigen::VectorXd> ptsx_eig(ptsx_car.data(), ptsx_car.size());
+          Eigen::Map<Eigen::VectorXd> ptsy_eig(ptsy_car.data(), ptsy_car.size());
+          auto coeffs = polyfit(ptsx_eig, ptsy_eig, 3);
+          double cte = polyeval(coeffs, 0);
+          double epsi = -atan(coeffs[1]);
+
+          Eigen::VectorXd state(6);
+          state << 0., 0., 0., v, cte, epsi;
+          auto vars = mpc.Solve(state, coeffs);          
           double steer_value;
           double throttle_value;
+          steer_value = vars[0];
+          throttle_value = vars[1];
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value;
+          msgJson["steering_angle"] = steer_value / deg2rad(25);
           msgJson["throttle"] = throttle_value;
 
           //Display the MPC predicted trajectory 
