@@ -68,7 +68,7 @@ class FG_eval {
     fg[1 + cte_start] = vars[cte_start];
     fg[1 + epsi_start] = vars[epsi_start];
 
-	for (int t = 1; t < N; t++) {
+    for (int t = 1; t < N; t++) {
       // The state at time t+1.
       AD<double> x1 = vars[x_start + t];
       AD<double> y1 = vars[y_start + t];
